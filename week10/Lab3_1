@@ -1,0 +1,38 @@
+import  paho.mqtt.client as mqtt
+import RPi.GPIO as GPIO
+import time
+
+# Define GPIO pins for RGB
+ledPin = 7
+
+# Setup GPIO
+GPIO.setmode(GPIO.BOARD)  # Use GPIO numbering
+GPIO.setup(ledPin, GPIO.OUT)
+
+def on_connect(client, userdata, flags, rc):
+    print("Connected with result code " + str(rc))
+    client.subscribe("iot/64070215")
+
+def on_message(client, userdata, msg):
+    print(msg.topic + " " + str(msg.payload))
+    
+    if msg.payload == b'on':
+        print("LED on")
+        GPIO.output(ledPin, 1)
+    elif msg.payload == b'off':
+        print("LED off")
+        GPIO.output(ledPin, 0)
+    else:
+        print("Unknown command")
+
+# Display different colors
+try:
+    client = mqtt.Client()
+    client.on_connect = on_connect
+    client.on_message = on_message
+    client.connect("phycom.it.kmitl.ac.th", 1883)
+    client.loop_forever()
+
+except KeyboardInterrupt:
+    print("Program stopped")
+    GPIO.cleanup()
